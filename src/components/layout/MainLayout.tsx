@@ -1,3 +1,4 @@
+import { Outlet } from "react-router-dom"
 import AppHeader from "./AppHeader"
 import SideBar from "./SideBar"
 
@@ -8,7 +9,7 @@ function MainLayout() {
             <div className="flex-grow-1">
                 <AppHeader/>
                 <main className="p-3">
-                    Main Content
+                    <Outlet />
                 </main>
             </div>
         </div>
