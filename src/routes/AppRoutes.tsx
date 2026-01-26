@@ -4,16 +4,19 @@ import Dashboard from "../pages/Dashboard/Dashboard";
 import Users from "../pages/Users/Users";
 import MainLayout from "../components/layout/MainLayout";
 import { ROUTES } from "./routes";
+import ProtectedRoute from "./ProtectedRoute";
 //need to check: lazyloading and dynamic loading of the routes
 
 function AppRoutes () {
     return (
         <Routes>
             <Route path={ROUTES.LOGIN} element={ <Login/> }/>
-            <Route element={ <MainLayout/> }>
-                <Route path="/" element={<Navigate to={ROUTES.DASHBOARD}/>} />
-                <Route path={ROUTES.USERS} element={<Users/>}/>
-                <Route path={ROUTES.DASHBOARD} element={<Dashboard/>}/>
+            <Route element={<ProtectedRoute/>}>
+                <Route element={ <MainLayout/> }>
+                    <Route index element={<Navigate to={ROUTES.DASHBOARD} replace/>} />
+                    <Route path={ROUTES.USERS} element={<Users/>}/>
+                    <Route path={ROUTES.DASHBOARD} element={<Dashboard/>}/>
+                </Route>
             </Route>
         </Routes>
     )
