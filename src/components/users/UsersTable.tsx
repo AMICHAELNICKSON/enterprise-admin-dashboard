@@ -4,9 +4,10 @@ import StatusBadge from "../common/StatusBadge";
 type UserTableProps = {
     users: User[];
     onDelete: (id: string) => void;
+    onEdit: (user: User) => void;
 }
 
-function UsersTable({ users, onDelete }: UserTableProps) {
+function UsersTable({ users, onDelete, onEdit }: UserTableProps) {
 
     if (users.length === 0) {
         return (
@@ -43,7 +44,7 @@ function UsersTable({ users, onDelete }: UserTableProps) {
                             <td>{user.createdAt}</td>
                             <td>
                                 <div className="d-flex gap-2">
-                                    <button className="btn btn-sm btn-outline-primary">
+                                    <button className="btn btn-sm btn-outline-primary" onClick={() => onEdit(user)}>
                                         Edit
                                     </button>
                                     <button className="btn btn-sm btn-danger" onClick={() => onDelete(user.id)}>

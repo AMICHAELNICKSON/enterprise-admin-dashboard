@@ -1,17 +1,27 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import UsersTable from "../../components/users/UsersTable"
 import { getUsers } from "../../services/userService"
 import type { User } from "../../types/user";
+import EditUserModal from "../../components/users/EditUserModal";
+import Toast from "../../components/common/Toast";
 
 function Users() {
     const [allUsers, setAllUsers] = useState<User[]>(() => getUsers());
     const [visibleUsers, setVisibleUsers] = useState<User[]>(allUsers);
+
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+
     const [currentPage, setCurrentPage] = useState<number>(1);
     const pageSize = 5;
     const paginatedUsers = visibleUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-    const totalPages = Math.max(1, Math.ceil(visibleUsers.length / pageSize)); 
+    const totalPages = Math.max(1, Math.ceil(visibleUsers.length / pageSize));
+
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+
+    const [toast, setToast] = useState<string>("");
+
+    const toastTimeoutRef = useRef<number | null>(null)
 
     useEffect(() => {
         let filteredUsers = filterUsersBySearch(allUsers, searchTerm);
@@ -44,6 +54,32 @@ function Users() {
         if ((currentPage - 1) * pageSize >= updatedUsers.length) {
             setCurrentPage((prevPage) => Math.max(1, prevPage - 1))
         }
+        showToast("User deleted successfully");
+    }
+
+    const handleEdit = (user: User) => {
+        setEditingUser(user);
+    }
+
+    const handleSave = (updatedUser: User) => {
+        setAllUsers((prevState) =>
+            prevState.map((user) => user.id === updatedUser.id ? updatedUser : user) 
+        )
+        setEditingUser(null);
+        showToast("User updated successfully");
+    }
+
+    const showToast = (message: string) => {
+        setToast(message);
+
+        if(toastTimeoutRef.current) {
+            clearTimeout(toastTimeoutRef.current)
+        }
+
+        toastTimeoutRef.current = setTimeout(() => {
+            setToast("");
+            toastTimeoutRef.current = null;
+        }, 2000);
     }
 
     return (
@@ -75,7 +111,30 @@ function Users() {
                     <option value="inactive">Inactive</option>
                 </select>
             </div>
-            <UsersTable users={paginatedUsers} onDelete={handleDelete} />
+
+            <button
+                onClick={() => {
+                    setAllUsers((prevState) => (
+                        [
+                            ...prevState,
+                            {
+                                id: crypto.randomUUID(),
+                                name: "newUser",
+                                email: "newUser@example.com",
+                                role: "user",
+                                status: "active",
+                                createdAt: new Date().toISOString().slice(0,10)
+                            }
+                        ]
+                    ))
+                    showToast("User added successfully");
+                }}
+            >
+                + Add User
+            </button>
+
+            <UsersTable users={paginatedUsers} onDelete={handleDelete} onEdit={handleEdit} />
+
             <div className="d-flex justify-content-between align-items-center mt-3">
                 <span className="text-muted">
                     Page {currentPage} of {totalPages}
@@ -95,6 +154,14 @@ function Users() {
                     Next
                 </button>
             </div>
+
+            <EditUserModal 
+                user={editingUser} 
+                onSave={handleSave} 
+                onClose={() => setEditingUser(null)} 
+            />
+
+            {toast && <Toast message={toast}/>}
         </>
     )
 
